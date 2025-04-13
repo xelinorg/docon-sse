@@ -1,0 +1,8 @@
+node_modules
+
+# crypto
+crypto/*.pem
+crypto/*.key
+crypto/*.crt
+crypto/*.csr
+crypto/*.srl

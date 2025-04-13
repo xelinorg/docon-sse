@@ -1,0 +1,17 @@
+{
+  "name": "docon-sse",
+  "version": "0.1.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate:crypto": "bash crypto/script.sh",
+    "dev:run": "npm run generate:crypto && node src/index_v2.js"
+  },
+  "dependencies": {
+    "docon": "github:xelinorg/docon"
+  }
+}
