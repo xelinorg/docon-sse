@@ -1,9 +1,42 @@
 <html>
-    <head>
-        <title>hello sse</title>
-    </head>
-    <body>
-        <script src="/client.js"></script>
-        <ul></ul>
-    </body>
+
+<head>
+    <script src="https://unpkg.com/htmx.org@2.0.4"
+        integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.2" crossorigin="anonymous"></script>
+    <style>
+        .alert {
+            padding: 20px;
+            background-color: #87cc17;
+            color: white;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="messages" hx-ext="sse" sse-connect="/sse" sse-swap="message">
+        
+    </div>
+    <div id="message-list">
+        Contents of this box will be updated in real time with every SSE message received from the chatroom.
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            document.getElementById('messages').addEventListener('htmx:sseBeforeMessage', function (e) {
+                e.preventDefault();
+                const message = e.detail.data;
+                const container = document.getElementById('message-list');
+                const newElement = document.createElement('div');
+                newElement.classList.add("alert");
+                newElement.textContent = message;
+                container.appendChild(newElement);
+            });
+        });
+    </script>
+
+</body>
+
 </html>

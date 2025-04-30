@@ -1,8 +1,11 @@
 import { createSecureServer, constants } from 'http2';
-import { Transform } from 'stream'
+import { Transform, PassThrough } from 'stream'
+import { Buffer } from 'buffer';
 import fs from 'fs';
 import path from 'path';
 
+
+import { packUnnamedEvent } from './sse_model.js'
 import { monitor } from 'docon';
 
 const consumers = [];
@@ -20,8 +23,13 @@ const consumerStream = createTransformStream()
 consumerStream.on('data', (data) => {
   console.log('got data:', JSON.parse(data));
   for (const consumer of consumers) {
-    consumer.write(`data: ${data}\n\n`)
+    const packed = packUnnamedEvent(data);
+    consumer.write(packed);
   }
+})
+
+consumerStream.on('end', () => {
+  console.log('stream ended');
 })
 
 consumerStream.on('error', (error) => {
@@ -51,20 +59,23 @@ server.on('stream', (stream, headers, flags) => {
       [HTTP2_HEADER_STATUS]: 200,
       [HTTP2_HEADER_CONTENT_TYPE]: 'text/event-stream; charset=utf-8',
     });
-    stream.write('data: {"message": "hello docon-sse"}\n\n');
+    stream.write(packUnnamedEvent('{ "hello": "sse started" }'));
   } else {
-    if (reqpath === '/client.js') {
-      stream.respond({
-        [HTTP2_HEADER_STATUS]: 200,
-        [HTTP2_HEADER_CONTENT_TYPE]: 'application/javascript; charset=utf-8',
-      });
-      fs.createReadStream(path.resolve('./src/client.js')).pipe(stream);
-    } else if (reqpath === '/'){
+    if (reqpath === '/'){
       stream.respond({
         [HTTP2_HEADER_STATUS]: 200,
         [HTTP2_HEADER_CONTENT_TYPE]: 'text/html; charset=utf-8',
       });
       fs.createReadStream(path.resolve('./src/index.html')).pipe(stream);
+    } else {
+      stream.respond({
+        [HTTP2_HEADER_STATUS]: 400,
+        [HTTP2_HEADER_CONTENT_TYPE]: 'text/html; charset=utf-8',
+      });
+      const notFount = Buffer.from('Not Found');
+      const passThroughStream = new PassThrough();
+      passThroughStream.end(notFount);
+      passThroughStream.pipe(stream)
     }
   }
 });
